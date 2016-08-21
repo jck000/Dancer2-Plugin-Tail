@@ -1,0 +1,21 @@
+plugins:
+  Tail:
+    update_interval: 3000
+    tmpdir:   '/tmp'
+    data:
+      method: 'get'
+      url:    '/tail/read'
+    display:     
+      method:   'get'
+      url:      '/tail/display'
+      template: 'tail.tt'
+      layout:   'nomenu.tt'
+    files:
+      id1:    
+        heading:  'Apache Access Log'
+        path:     '/var/log/httpd/access_log'
+      id2:    
+        heading:  'Apache Error Log'
+        path:     '/var/log/httpd/error_log'
+
+
