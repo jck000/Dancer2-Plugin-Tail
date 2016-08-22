@@ -15,11 +15,11 @@ Dancer2::Plugin::Tail - Tail a file from Dancer2
 
 =head1 VERSION
 
-Version 0.007
+Version 0.008
 
 =cut
 
-our $VERSION = '0.007';
+our $VERSION = '0.008';
 
 
 =head1 SYNOPSIS
@@ -282,9 +282,12 @@ sub display_tail {
     if ( ! $files->{$file_id}->{file} );
 
   $app->template($plugin->display_template, 
-                  { id       => $file_id,
-                    curr_pos => $curr_pos,
-                    title    => $files->{$file_id}->{heading} },
+                  { id              => $file_id,
+                    curr_pos        => $curr_pos,
+                    title           => $files->{$file_id}->{heading},
+                    data_method     => $plugin->data_method,    
+                    data_url        => $plugin->data_url,
+                    update_interval => $plugin->update_interval },
                   { layout => $plugin->display_layout }) ;
 }              
 
