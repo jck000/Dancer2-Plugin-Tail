@@ -55,7 +55,6 @@
 <script>
   var empty_resp_cnt    = 0;
   var refreshIntervalId = 0;
-  var tail_interval     = 3000;
   var stop_resp_cnt     = 5;
 
   $('#closebutton').on( 'click', function(e) {
@@ -65,19 +64,19 @@
   setTimeout( after_pause, 1000 );
 
   function after_pause() {
-    refreshIntervalId = setInterval( gettail, tail_interval );
+    refreshIntervalId = setInterval( gettail, [% update_interval %[ );
   }
 
   function gettail( ) {
     var curr_pos       = $('#curr_pos').val();
     var log_file       = $('#log_file').val();
 
-    var tmphost = '[% app_host_url %]/tail/read?log_file=' + log_file + '&curr_pos=' + curr_pos ;
+    var full_url = '[% app_host_url %][% data_url %]?log_file=' + log_file + '&curr_pos=' + curr_pos ;
 
     $.ajax({
-      url :         tmphost,
+      url :         full_url,
       dataType :    'json',
-      type :        'get',
+      type :        [% data_method %],
       crossDomain : true,
       async :       false,
       cache :       false,
