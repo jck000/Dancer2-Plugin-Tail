@@ -15,11 +15,11 @@ Dancer2::Plugin::Tail - Tail a file from Dancer2
 
 =head1 VERSION
 
-Version 0.006
+Version 0.007
 
 =cut
 
-our $VERSION = '0.006';
+our $VERSION = '0.007';
 
 
 =head1 SYNOPSIS
@@ -27,17 +27,17 @@ our $VERSION = '0.006';
   use Dancer2;
   use Dancer2::Plugin::Tail;
 
+
 =head1 DESCRIPTION
 
-This plugin will allow you to tail a file from within Dancer2.  It's designed to be unobtrusive.  So, it is functional just by calling it from your scripts.  Edit entries in the configuration file to setup routes and activate files that may be tailed.  Additionally, you may define or restrict definition of tailed files.
+This plugin will allow you to tail a file from within Dancer2.  It's designed to be unobtrusive.  So, it is functional just by calling it from your scripts.  Edit entries in the Dancer configuration to setup routes and activate files that may be tailed.  Additionally, you may define or restrict definition of tailed files.
+
 
 =head1 CONFIGURATION
 
-You may specify the route and access to files.  The plugin will only read files so it must have read access to them.  The above configuration will generate two routes: '/tail/display' and '/tail/read'.  
+You may specify the route and access to files.  The plugin will only read files so it must have read access to them.  The following configuration will generate two routes: '/tail/display' and '/tail/read'.  
 
-The display section defines the 
-
-A sample HTML page with Bootstrap and jQuery is included in the samples directory.  Use it as an example  to build your own page.
+A sample HTML page with Bootstrap and jQuery is included in the samples directory.  Use it as an example to build your own page.
 
   plugins:
     Tail:
@@ -65,7 +65,7 @@ A sample HTML page with Bootstrap and jQuery is included in the samples director
 
 =item I<update_interval>
 
-Specify an update interval.  Default is 3000.  This value is passed to your web page or window.  See example that's included.
+Specify an update interval.  Default is 3 seconds (3000).  This value is passed to your web page or window.  See example that's included.
 
 
 =item I<tmpdir>
@@ -83,7 +83,7 @@ Please see L<Dancer2::Core::Session> for information on how to configure session
 
 =item I<no_defaults>
 
-Specifies if defaults should be ignored.
+Specifies if defaults should be ignored.  In other words, ignore default settings from plugin configuration.
 
 
 =item I<display>
@@ -143,7 +143,7 @@ Define a unique ID for this file
 
 =item I<heading>
 
-This is a heading to be passed to the template.  Use it as a short description to the file you're taiing.
+This is a heading or title of the html page to be passed to the template.  Use it as a short description to the file you're taiing.
 
 =item I<file>
 
@@ -386,7 +386,7 @@ You can also look for information at:
 
 =over 
 
-=item * RT: CPAN's request tracker (report bugs here)
+=item * Report bugs on github
 
 L<https://github.com/jck000/Dancer2-Plugin-Tail/issues>
 
@@ -398,14 +398,11 @@ L<http://annocpan.org/dist/Dancer2-Plugin-Tail>
 
 L<http://cpanratings.perl.org/d/Dancer2-Plugin-Tail>
 
-=item * Search CPAN
+=item * Search metaCPAN
 
-L<http://search.cpan.org/dist/Dancer2-Plugin-Tail/>
+L<https://metacpan.org/pod/Dancer2::Plugin::Tail/>
 
 =back
-
-
-=head1 ACKNOWLEDGEMENTS
 
 
 =head1 LICENSE AND COPYRIGHT
