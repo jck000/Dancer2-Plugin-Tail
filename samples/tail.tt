@@ -7,6 +7,10 @@
         <legend>[% title %]</legend>
         
         <div id="ajax_error"></div>
+        [% IF error != "" %]
+        <div  class="alert alert-danger">
+           <strong>[% error %]</div>
+        [% END %]
         
         <style>
         pre {
@@ -42,8 +46,8 @@
         </div>
       </div>
       
-      <input type="hidden" id="job_title" name="job_title" value="[% job_title %]">
-      <input type="hidden" id="log_file"  name="log_file" value="[% log_file %]">
+      <input type="hidden" id="title"     name="title"    value="[% title %]">
+      <input type="hidden" id="file_id"   name="file_id"  value="[% id %]">
       <input type="hidden" id="curr_pos"  name="curr_pos" value="0">
     
     </fieldset>
@@ -55,7 +59,6 @@
 <script>
   var empty_resp_cnt    = 0;
   var refreshIntervalId = 0;
-  var stop_resp_cnt     = 5;
 
   $('#closebutton').on( 'click', function(e) {
     window.close();
@@ -64,19 +67,19 @@
   setTimeout( after_pause, 1000 );
 
   function after_pause() {
-    refreshIntervalId = setInterval( gettail, [% update_interval %[ );
+    refreshIntervalId = setInterval( gettail, [% update_interval %] );
   }
 
   function gettail( ) {
-    var curr_pos       = $('#curr_pos').val();
-    var log_file       = $('#log_file').val();
+    var curr_pos = $('#curr_pos').val();
+    var file_id  = $('#file_id').val();
 
-    var full_url = '[% app_host_url %][% data_url %]?log_file=' + log_file + '&curr_pos=' + curr_pos ;
+    var full_url = '[% app_host_url %][% data_url %]?id=' + file_id + '&curr_pos=' + curr_pos ;
 
     $.ajax({
       url :         full_url,
       dataType :    'json',
-      type :        [% data_method %],
+      type :        '[% data_method %]',
       crossDomain : true,
       async :       false,
       cache :       false,
@@ -123,7 +126,7 @@
         }
 
         // Stop if number of empty responses >= to stop_resp_cnt
-        if ( empty_resp_cnt >= stop_resp_cnt ) {
+        if ( empty_resp_cnt >= [% stop_on_empty_cnt %] ) {
           clearInterval(refreshIntervalId);
         }
  

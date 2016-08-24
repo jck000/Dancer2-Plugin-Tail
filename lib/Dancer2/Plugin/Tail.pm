@@ -42,6 +42,7 @@ A sample HTML page with Bootstrap and jQuery is included in the samples director
   plugins:
     Tail:
       update_interval: 3000
+      stop_on_empty_cnt: 5
       tmpdir:          '/tmp'
       no_user_defined: 1
       no_defaults:     0
@@ -66,6 +67,11 @@ A sample HTML page with Bootstrap and jQuery is included in the samples director
 =item I<update_interval>
 
 Specify an update interval.  Default is 3 seconds (3000).  This value is passed to your web page or window.  See example that's included.
+
+
+=item I<stop_on_empty_cnt>
+
+Specify the number of empty responses before stopping.  Default is 10.  This value is passed to your web page or window.  See example that's included.
 
 
 =item I<tmpdir>
@@ -164,6 +170,14 @@ has update_interval => (
   default     => sub { '3000' },    # 3 second interval
 );
 
+has stop_on_empty_cnt => (
+  is          => 'ro',
+  isa         => Str,
+  from_config => 1,
+  default     => sub { '10' },    # 10 Empty or 30 secs i
+                                  #  (update_interval * stop_on_empty_cnt) = 30
+);
+
 has no_user_defined => (
   is          => 'ro',
   isa         => Bool,
@@ -241,7 +255,7 @@ sub BUILD {
   my $plugin = shift;
   my $app    = $plugin->app;
 
-  if ( ! $plugin->no_defaults ) {
+  if ( $plugin->no_defaults == 0 ) {        # 0 means YES defaults
 
     # Setup route to display a template for the tail
     my $disp_method   = $plugin->display_method;
@@ -273,21 +287,28 @@ sub display_tail {
   my $app    = shift;
   my $plugin = $app->with_plugin('Tail');
 
+  my $error    = undef;
   my $file_id  = $app->request->params->{id};
   my $curr_pos = $app->request->params->{curr_pos};
 
   my $files = $plugin->files;
 
-  croak "The specified id: $file_id is not properly defined in your configuration."
-    if ( ! $files->{$file_id}->{file} );
+  # Check for errors
+  if ( ! defined $files->{$file_id}->{file} ) {
+    $error = "The specified id: $file_id is not defined or not properly defined in your configuration.\n$files->{$file_id}->{file}";
+  } elsif ( ! -r $files->{$file_id}->{file} ) { 
+    $error = "The specified id: $file_id is not accessible." if ( ! -r $files->{$file_id}->{file} );
+  }
 
   $app->template($plugin->display_template, 
-                  { id              => $file_id,
-                    curr_pos        => $curr_pos,
-                    title           => $files->{$file_id}->{heading},
-                    data_method     => $plugin->data_method,    
-                    data_url        => $plugin->data_url,
-                    update_interval => $plugin->update_interval },
+                  { id                => $file_id,
+                    curr_pos          => $curr_pos,
+                    title             => $files->{$file_id}->{heading},
+                    data_method       => $plugin->data_method,    
+                    data_url          => $plugin->data_url,
+                    update_interval   => $plugin->update_interval,
+                    stop_on_empty_cnt => $plugin->stop_on_empty_cnt,
+                    error             => $error },
                   { layout => $plugin->display_layout }) ;
 }              
 
