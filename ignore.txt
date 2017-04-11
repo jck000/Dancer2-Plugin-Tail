@@ -18,3 +18,4 @@ Dancer2-Plugin-Tail-*
 Dancer2-Plugin-Tail-*.tar.gz
 .git
 .gitignore
+*.o

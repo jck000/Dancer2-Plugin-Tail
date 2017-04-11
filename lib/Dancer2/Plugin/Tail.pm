@@ -15,11 +15,11 @@ Dancer2::Plugin::Tail - Tail a file from Dancer2
 
 =head1 VERSION
 
-Version 0.008
+Version 0.010
 
 =cut
 
-our $VERSION = '0.008';
+our $VERSION = '0.010';
 
 
 =head1 SYNOPSIS
@@ -44,8 +44,6 @@ A sample HTML page with Bootstrap and jQuery is included in the samples director
       update_interval: 3000
       stop_on_empty_cnt: 5
       tmpdir:          '/tmp'
-      no_user_defined: 1
-      no_defaults:     0
       display:
         method:    'get'
         url:       '/tail/display'
@@ -77,19 +75,6 @@ Specify the number of empty responses before stopping.  Default is 10.  This val
 =item I<tmpdir>
 
 location of user generted files to tail.  Default is '/tmp'.
-
-
-=item I<no_user_defined>
-
-Specifies if user can call tail dynamically on any file.  This is useful for tailing user generated log files.
-
-B<Note> that you B<must> have a session provider configured to dynamically tail files using this plugin.  This plugin requires sessions in order to track information about user defined tailed files for the logged in user.
-Please see L<Dancer2::Core::Session> for information on how to configure session management within your application.
-
-
-=item I<no_defaults>
-
-Specifies if defaults should be ignored.  In other words, ignore default settings from plugin configuration.
 
 
 =item I<display>
@@ -155,8 +140,12 @@ This is a heading or title of the html page to be passed to the template.  Use i
 
 Full path and file name to tail.
 
-
 =back 
+
+B<Note> that you B<must> have a session provider configured to dynamically tail files using this plugin.  This plugin requires sessions in order to track information about user defined tailed files for the logged in user.
+Please see L<Dancer2::Core::Session> for information on how to configure session management within your application.
+
+
 
 =cut 
 
@@ -176,18 +165,6 @@ has stop_on_empty_cnt => (
   from_config => 1,
   default     => sub { '10' },    # 10 Empty or 30 secs i
                                   #  (update_interval * stop_on_empty_cnt) = 30
-);
-
-has no_user_defined => (
-  is          => 'ro',
-  isa         => Bool,
-  from_config => sub { 1 },
-);
-
-has no_defaults => (
-  is          => 'ro',
-  isa         => Bool,
-  from_config => sub { 0 },
 );
 
 has data_method => (
@@ -255,29 +232,26 @@ sub BUILD {
   my $plugin = shift;
   my $app    = $plugin->app;
 
-  if ( $plugin->no_defaults == 0 ) {        # 0 means YES defaults
+  # Setup route to display a template for the tail
+  my $disp_method   = $plugin->display_method;
+  my $disp_url      = $plugin->display_url;
 
-    # Setup route to display a template for the tail
-    my $disp_method   = $plugin->display_method;
-    my $disp_url      = $plugin->display_url;
-  
-    $plugin->app->add_route(
-      method => $disp_method,
-      regexp => qr!$disp_url!,
-      code   => \&display_tail,
-    );
-  
-    # Setup a route to return json data of the file
-    my $data_url    = $plugin->data_url;
-    my $data_method = $plugin->data_method;
-  
-    # Use regexp to match part of the file, then splat inside code
-    $plugin->app->add_route(
-      method => $data_method,
-      regexp => qr!^$data_url!,
-      code   => \&tail_file,
-    );
-  }
+  $plugin->app->add_route(
+    method => $disp_method,
+    regexp => qr!$disp_url!,
+    code   => \&display_tail,
+  );
+
+  # Setup a route to return json data of the file
+  my $data_url    = $plugin->data_url;
+  my $data_method = $plugin->data_method;
+
+  # Use regexp to match part of the file, then splat inside code
+  $plugin->app->add_route(
+    method => $data_method,
+    regexp => qr!^$data_url!,
+    code   => \&tail_file,
+  );
 
 }    ### BUILD
 
@@ -314,15 +288,25 @@ sub display_tail {
 
 # Function for a user to dynamically define a file 
 sub define_file_to_tail {
-  my ( $plugin, %params ) = @_;
-  
-  if ( ! defined $params{file} || ! -e $params{file} ) {
-    return "No filname passed or file does not exist.";
+  my ( $plugin, $file ) = @_;
+
+  my $file_id = _new_file_id();          # Create a new file id
+
+  $file->{heading} = ' '  if ( $file->{heading} == undef );
+  if ( $file->{file} == undef ) { 
+    $file->{file} = $plugin->tmpdir . '/' . $file_id ;
+  } else {
+    if ( ! -e $file->{file} ) {
+      open( my $touchfile, ">>", $file->{file} ) ;
+      print $touchfile " ";
+      close($touchfile);
+    }
   }
 
-  my $file_id = _new_file_id();         # Create a new file id
-  my $session = $plugin->app->session;  # Get the session
-  $session->write( $file_id, %params);   # Store the file name into 
+  my $tail_id = 'tail-' . $file_id ;
+
+  # Store the file name into session
+  $plugin->app->session->write( $tail_id => \%{$file} );  
 
   return $file_id;
 }
@@ -335,25 +319,30 @@ sub tail_file {
   my $file_id  = $app->request->params->{id};
   my $curr_pos = $app->request->params->{curr_pos};
 
-  my $files    = $plugin->files;
+  my $file;
+  my $tail_file;
+  my $tail_heading;
+  my $files = $plugin->files;
 
-  # setup keyword if available
-  if ( $plugin->no_user_defined ) {
-    my $session = $plugin->app->session;  
-    $files->{$file_id} = $session->read( $file_id ) if $session->read($file_id);   
+  if ( $files->{$file_id} ) {
+    $tail_file    = $files->{$file_id}->{file} ;
+    $tail_heading = $files->{$file_id}->{heading};
+  } else {
+    my $tail_id   = 'tail-' . $file_id ;
+    my $file      = $plugin->app->session->read($tail_id); 
+    $tail_file    = $file->{file};
+    $tail_heading = $file->{heading};
   }
 
-  my $log_file = $files->{$file_id}->{file} || '';
-
-  if ( $log_file ne '' && -e $log_file ) {
+  if ( $tail_file ne '' && -e $tail_file ) {
 
     my ($output, $whence);
 
-    open(my $IN, '<', $log_file);  # Open file for reading
+    open(my $IN, '<', $tail_file);  # Open file for reading
 
     # Add header if it's 1st request
     if ( $curr_pos < 1 ) {
-      $output = "$log_file\n";
+      $output = "$tail_file\n";
     }
 
     # Determine where to start reading
