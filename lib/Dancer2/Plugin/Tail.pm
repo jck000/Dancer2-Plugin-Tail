@@ -13,11 +13,11 @@ Dancer2::Plugin::Tail - Tail a file from Dancer2
 
 =head1 VERSION
 
-Version 0.011
+Version 0.012
 
 =cut
 
-our $VERSION = '0.011';
+our $VERSION = '0.012';
 
 
 =head1 SYNOPSIS
@@ -462,11 +462,6 @@ plugin_keywords qw( define_file_to_tail );
 
 Hagop "Jack" Bilemjian, C<< <jck000 at gmail.com> >>
 
-=head1 BUGS
-
-Please report any bugs or feature requests to C<bug-dancer2-plugin-tail at rt.cpan.org>, or through
-the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Dancer2-Plugin-Tail>.  I will be notified, and then you'll
-automatically be notified of progress on your bug as I make changes.
 
 =head1 SUPPORT
 
