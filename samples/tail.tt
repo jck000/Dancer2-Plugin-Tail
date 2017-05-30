@@ -49,9 +49,9 @@
 
         </div>
       
-        <input type="hidden" id="heading"  name="heading"  value="[% heading %]">
-        <input type="hidden" id="id"       name="id"       value="[% id %]">
-        <input type="hidden" id="curr_pos" name="curr_pos" value="0">
+        <input type="hidden" id="heading"      name="heading"      value="[% heading %]">
+        <input type="hidden" id="tail_file_id" name="tail_file_id" value="[% tail_file_id %]">
+        <input type="hidden" id="curr_pos"     name="curr_pos"     value="0">
     
     </fieldset>
   </form>
@@ -74,10 +74,10 @@
   }
 
   function gettail( ) {
-    var curr_pos = $('#curr_pos').val();
-    var id       = $('#id').val();
+    var curr_pos     = $('#curr_pos').val();
+    var tail_file_id = $('#tail_file_id').val();
 
-    var full_url = '[% app_host_url %][% data_url %]?id=' + id + '&curr_pos=' + curr_pos ;
+    var full_url = '[% app_host_url %][% data_url %]?tail_file_id=' + tail_file_id + '&curr_pos=' + curr_pos ;
 
     $.ajax({
       url :         full_url,
