@@ -13,7 +13,7 @@ Dancer2::Plugin::Tail - Tail a file from Dancer2
 
 =head1 VERSION
 
-Version 0.014
+Version 0.015
 
 =cut
 
